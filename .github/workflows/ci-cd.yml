@@ -1,0 +1,55 @@
+name: Serverless CI/CD
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test:
+    name: Test Lambda Functions
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          for func in lambda/*/; do
+            if [ -f "$func/requirements.txt" ]; then
+              pip install -r "$func/requirements.txt"
+            fi
+          done
+
+      - name: Run tests
+        run: |
+          # Add your test commands here
+          echo "Tests would run here"
+
+  lint:
+    name: Lint Code
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install linting tools
+        run: |
+          pip install flake8 pylint
+
+      - name: Run linter
+        run: |
+          flake8 lambda/ --count --select=E9,F63,F7,F82 --show-source --statistics
+          flake8 lambda/ --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+

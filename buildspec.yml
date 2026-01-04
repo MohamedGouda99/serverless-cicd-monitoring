@@ -1,0 +1,43 @@
+version: 0.2
+
+phases:
+  pre_build:
+    commands:
+      - echo Logging in to Amazon ECR...
+      - echo Build started on `date`
+      - echo Building the Lambda deployment packages...
+  
+  build:
+    commands:
+      - echo Building deploy function...
+      - cd lambda/deploy-function
+      - pip install -r requirements.txt -t .
+      - zip -r ../../deploy-function.zip .
+      - cd ../..
+      
+      - echo Building backup function...
+      - cd lambda/backup-function
+      - pip install -r requirements.txt -t .
+      - zip -r ../../backup-function.zip .
+      - cd ../..
+      
+      - echo Building monitoring function...
+      - cd lambda/monitoring-function
+      - pip install -r requirements.txt -t .
+      - zip -r ../../monitoring-function.zip .
+      - cd ../..
+  
+  post_build:
+    commands:
+      - echo Build completed on `date`
+      - echo Uploading deployment packages to S3...
+      - aws s3 cp deploy-function.zip s3://$LAMBDA_DEPLOYMENTS_BUCKET/
+      - aws s3 cp backup-function.zip s3://$LAMBDA_DEPLOYMENTS_BUCKET/
+      - aws s3 cp monitoring-function.zip s3://$LAMBDA_DEPLOYMENTS_BUCKET/
+
+artifacts:
+  files:
+    - deploy-function.zip
+    - backup-function.zip
+    - monitoring-function.zip
+
